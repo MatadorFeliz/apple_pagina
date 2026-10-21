@@ -14,11 +14,11 @@ app.use(express.static(path.join(__dirname, 'public')));
 // --- Conexión a la Base de Datos (Aiven / Producción o Local) ---
 // Si estás en Vercel, usarás variables de entorno; si estás en local, puedes poner tus credenciales de Aiven o XAMPP
 const db = mysql.createConnection({
-  host: process.env.DB_HOST || 'TU_HOST_DE_AIVEN',
-  user: process.env.DB_USER || 'TU_USUARIO_DE_AIVEN',
-  password: process.env.DB_PASSWORD || 'TU_CONTRASENA_DE_AIVEN',
-  database: process.env.DB_NAME || 'TU_BASE_DE_DATOS_DE_AIVEN',
-  port: process.env.DB_PORT || 3306,
+  host: process.env.DB_HOST || 'mysql-24aa1627-juanctellesr-3fe9.c.aivencloud.com',
+  user: process.env.DB_USER || 'avnadmin',
+  password: process.env.DB_PASSWORD || 'TAVNS_l4Poq5UCHBv5HyYj-kk',
+  database: process.env.DB_NAME || 'defaultdb',
+  port: process.env.DB_PORT || 20354,
   ssl: { rejectUnauthorized: false } // Requerido por Aiven para conexiones seguras
 });
 
