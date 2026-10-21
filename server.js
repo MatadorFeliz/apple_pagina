@@ -34,7 +34,7 @@ db.connect((err) => {
 app.get('/api/productos', (req, res) => {
   const sql = 'SELECT * FROM productos ORDER BY id DESC';
   db.query(sql, (err, results) => {
-    if (err) return res.status(500).json({ error: err.message });
+    if (err) return res.status(500).json({ error: "Fallo DB: " + err.message, stack: err.stack });
     res.json(results);
   });
 });
