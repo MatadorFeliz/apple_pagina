@@ -78,7 +78,7 @@
     .apple-pill-outline:hover { border-color: var(--color-porcelain); }
 
     .image-container { height: 240px; background-color: #000; display: flex; align-items: center; justify-content: center; position: relative; }
-    .image-container img { width: 100%; height: 100%; object-fit: cover; opacity: 0.7; transition: opacity 0.5s ease; }
+    .image-container img { width: 100%; height: 100%; object-fit: contain; padding: 20px; opacity: 0.7; transition: opacity 0.5s ease; }
     .feature-tile:hover .image-container img { opacity: 1; }
 
     /* Animaciones */
@@ -335,12 +335,12 @@
         },
         async obtenerProductos() {
           try {
-            const res = await fetch('http://localhost:3000/api/productos');
+            const res = await fetch('/api/productos');
             this.productos = await res.json();
           } catch (error) { console.error("Error:", error); }
         },
         async guardarProducto() {
-          const url = this.editandoId ? `http://localhost:3000/api/productos/${this.editandoId}` : 'http://localhost:3000/api/productos';
+          const url = this.editandoId ? `/api/productos/${this.editandoId}` : '/api/productos';
           const metodo = this.editandoId ? 'PUT' : 'POST';
           try {
             await fetch(url, { method: metodo, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(this.formulario) });
@@ -358,7 +358,7 @@
         async eliminarProducto(id) {
           const conf = await this.alertaOscura().fire({ title: '¿Destruir registro?', text: "Irreversible.", icon: 'warning', showCancelButton: true, confirmButtonText: 'Eliminar', cancelButtonText: 'Cancelar' });
           if (conf.isConfirmed) {
-            await fetch(`http://localhost:3000/api/productos/${id}`, { method: 'DELETE' });
+            await fetch(`/api/productos/${id}`, { method: 'DELETE' });
             this.obtenerProductos();
           }
         },
