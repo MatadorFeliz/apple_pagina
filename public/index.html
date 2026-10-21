@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Inventario | Midnight Gallery</title>
+  
+  <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap');
+
+    :root {
+      --color-obsidian: #000000;
+      --color-graphite: #0e0e0e;
+      --color-carbon: #1d1d1f;
+      --color-steel: #333336;
+      --color-slate: #6e6e73;
+      --color-ash: #86868b;
+      --color-porcelain: #f5f5f7;
+      --color-apple-blue: #0071e3;
+      --color-copper-new: #b64400;
+      --font-sf-pro: 'Inter', sans-serif;
+    }
+
+    body {
+      font-family: var(--font-sf-pro);
+      background-color: var(--color-obsidian);
+      color: var(--color-porcelain);
+      margin: 0;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* Navegación Global estilo Apple */
+    .global-nav {
+      background-color: rgba(0, 0, 0, 0.8);
+      backdrop-filter: blur(20px);
+      font-size: 12px;
+      letter-spacing: -0.12px;
+    }
+    .global-nav-link {
+      color: #cccccc;
+      transition: color 0.2s;
+      cursor: pointer;
+    }
+    .global-nav-link:hover { color: #ffffff; }
+
+    .hero-stage { background: radial-gradient(circle at center 100%, rgba(41, 151, 255, 0.15) 0%, var(--color-obsidian) 60%); }
+    .apple-nav { background-color: rgba(14, 14, 14, 0.8); backdrop-filter: blur(20px); border-bottom: 1px solid #282828; }
+
+    .feature-tile {
+      background-color: var(--color-carbon);
+      border-radius: 28px;
+      overflow: hidden;
+      transition: transform 0.3s ease, background-color 0.3s ease;
+      cursor: pointer;
+    }
+    .feature-tile:hover { transform: scale(1.02); background-color: #252527; }
+
+    .apple-input {
+      background-color: rgba(255, 255, 255, 0.04);
+      border: 1px solid var(--color-slate);
+      color: var(--color-porcelain);
+      border-radius: 12px;
+      padding: 14px 20px;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    .apple-input:focus { border-color: var(--color-apple-blue); }
+
+    .apple-pill-blue { background-color: var(--color-apple-blue); color: #ffffff; border-radius: 170px; padding: 10px 24px; font-size: 14px; font-weight: 500; transition: opacity 0.2s; }
+    .apple-pill-blue:hover { opacity: 0.9; cursor: pointer; }
+
+    .apple-pill-outline { border: 1px solid var(--color-slate); border-radius: 170px; padding: 10px 24px; font-size: 14px; color: var(--color-porcelain); transition: border-color 0.2s; cursor: pointer; }
+    .apple-pill-outline:hover { border-color: var(--color-porcelain); }
+
+    .image-container { height: 240px; background-color: #000; display: flex; align-items: center; justify-content: center; position: relative; }
+    .image-container img { width: 100%; height: 100%; object-fit: cover; opacity: 0.7; transition: opacity 0.5s ease; }
+    .feature-tile:hover .image-container img { opacity: 1; }
+
+    /* Animaciones */
+    .fade-enter-active, .fade-leave-active { transition: opacity 0.4s ease; }
+    .fade-enter-from, .fade-leave-to { opacity: 0; }
+  </style>
+</head>
+<body>
+  <div id="app">
+    <!-- Navegación Global (Categorías) -->
+    <nav class="global-nav sticky top-0 z-50 px-4 py-3 flex justify-center gap-8 items-center border-b border-[#282828]">
+      <a @click="vistaActual = 'galeria'" class="global-nav-link text-lg"><i class="fab fa-apple"></i></a>
+      <a @click="abrirDetalle('Mac')" class="global-nav-link">Mac</a>
+      <a @click="abrirDetalle('iPad')" class="global-nav-link">iPad</a>
+      <a @click="abrirDetalle('iPhone')" class="global-nav-link">iPhone</a>
+      <a @click="abrirDetalle('Watch')" class="global-nav-link">Watch</a>
+      <a @click="abrirDetalle('AirPods')" class="global-nav-link">AirPods</a>
+    </nav>
+
+    <!-- Navegación Local -->
+    <nav class="apple-nav sticky top-[45px] z-40 px-6 py-4 flex justify-between items-center">
+      <div class="font-semibold text-[21px] tracking-tight cursor-pointer" @click="vistaActual = 'galeria'">Gestión M-Series</div>
+      <div v-if="vistaActual === 'galeria'">
+        <button class="apple-pill-outline text-sm" @click="mostrarFormulario = !mostrarFormulario">
+          <i class="fas" :class="mostrarFormulario ? 'fa-times' : 'fa-plus'"></i> <span class="ml-2">{{ mostrarFormulario ? 'Cerrar panel' : 'Nuevo equipo' }}</span>
+        </button>
+      </div>
+      <div v-else>
+        <button class="apple-pill-blue text-sm" @click="vistaActual = 'galeria'">
+          Volver a la Galería
+        </button>
+      </div>
+    </nav>
+
+    <transition name="fade" mode="out-in">
+      
+      <!-- VISTA 1: GALERÍA Y GESTIÓN CRUD -->
+      <div v-if="vistaActual === 'galeria'" key="galeria">
+        <section class="hero-stage pt-24 pb-20 text-center">
+          <div class="text-[var(--color-copper-new)] text-[12px] font-semibold tracking-wide uppercase mb-4">Sistema centralizado</div>
+          <h1 class="text-[64px] md:text-[96px] font-semibold leading-[1.04] tracking-[-1.44px] mb-6">Exhibición<br>absoluta.</h1>
+          <p class="text-[20px] text-[var(--color-ash)] max-w-2xl mx-auto tracking-[-0.38px]">Gestión de catálogo premium.</p>
+        </section>
+
+        <main class="max-w-7xl mx-auto px-6 pb-32">
+          <!-- Formulario CRUD -->
+          <div v-if="mostrarFormulario" class="bg-[var(--color-carbon)] rounded-[28px] p-10 mb-16 border border-[var(--color-steel)]">
+            <h3 class="text-[32px] font-semibold tracking-[0.128px] mb-8">{{ editandoId ? 'Calibrar especificaciones' : 'Registrar nueva unidad' }}</h3>
+            <form @submit.prevent="guardarProducto" class="grid grid-cols-1 md:grid-cols-2 gap-8">
+              <div><label class="block text-[14px] text-[var(--color-ash)] mb-2">Designación (Ej: iPhone 15 Pro)</label><input v-model="formulario.nombre" type="text" required class="apple-input w-full"></div>
+              <div><label class="block text-[14px] text-[var(--color-ash)] mb-2">Clasificación</label><input v-model="formulario.categoria" type="text" required class="apple-input w-full"></div>
+              <div><label class="block text-[14px] text-[var(--color-ash)] mb-2">Valor ($)</label><input v-model="formulario.precio" type="number" step="0.01" required class="apple-input w-full"></div>
+              <div><label class="block text-[14px] text-[var(--color-ash)] mb-2">Stock</label><input v-model="formulario.stock" type="number" required class="apple-input w-full"></div>
+              <div class="md:col-span-2 flex justify-end gap-4 mt-4">
+                <button type="button" @click="cancelarEdicion" class="apple-pill-outline">Cancelar</button>
+                <button type="submit" class="apple-pill-blue">{{ editandoId ? 'Actualizar unidad' : 'Autorizar registro' }}</button>
+              </div>
+            </form>
+          </div>
+
+          <div class="flex justify-between items-end mb-8">
+            <h2 class="text-[40px] font-semibold tracking-[-0.12px]">Directorio Activo</h2>
+            <button @click="obtenerProductos" class="text-[#2997ff] text-[14px] hover:underline">Sincronizar red <i class="fas fa-rotate-right ml-1"></i></button>
+          </div>
+
+          <!-- Cuadrícula -->
+          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div v-for="prod in productos" :key="prod.id" class="feature-tile flex flex-col relative group" @click="abrirDetalleDesdeGaleria(prod)">
+              <div class="absolute top-4 right-4 z-10 bg-black/60 backdrop-blur-md px-3 py-1 rounded-full border border-white/10 text-[12px] text-white">{{ prod.stock }} en stock</div>
+              
+              <div class="image-container">
+                <img :src="obtenerImagen(prod.nombre)" :alt="prod.nombre">
+                <div class="absolute inset-0 bg-gradient-to-t from-[var(--color-carbon)] to-transparent"></div>
+              </div>
+
+              <div class="p-8 pt-0 flex-1 flex flex-col justify-between relative z-10 -mt-10">
+                <div>
+                  <div v-if="prod.id > productos.length - 2" class="text-[var(--color-copper-new)] text-[12px] font-semibold mb-2">NUEVO</div>
+                  <h4 class="text-[28px] font-semibold tracking-[0.196px] leading-tight mb-1">{{ prod.nombre }}</h4>
+                  <p class="text-[14px] text-[var(--color-ash)]">{{ prod.categoria }}</p>
+                </div>
+                
+                <div class="flex items-end justify-between mt-8">
+                  <span class="text-[20px] font-medium tracking-tight">${{ prod.precio }}</span>
+                  <div class="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300" @click.stop>
+                    <button @click="editarProducto(prod)" class="w-10 h-10 rounded-full bg-[var(--color-steel)] flex items-center justify-center hover:bg-[#2997ff] transition-colors"><i class="fas fa-pen text-[12px]"></i></button>
+                    <button @click="eliminarProducto(prod.id)" class="w-10 h-10 rounded-full bg-[var(--color-steel)] flex items-center justify-center hover:bg-red-600 transition-colors"><i class="fas fa-trash text-[12px]"></i></button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </main>
+      </div>
+
+      <!-- VISTA 2: DETALLE DEL PRODUCTO -->
+      <div v-if="vistaActual === 'detalle' && detalleData" key="detalle" class="bg-black pb-32">
+        <!-- Hero del producto -->
+        <div class="relative w-full h-[60vh] bg-black flex items-center justify-center overflow-hidden">
+          <img :src="detalleData.heroImg" class="absolute inset-0 w-full h-full object-cover opacity-50">
+          <div class="absolute inset-0 bg-gradient-to-t from-black to-transparent"></div>
+          <div class="relative z-10 text-center px-4">
+            <h1 class="text-[80px] font-semibold tracking-[-1.2px] mb-2">{{ detalleData.titulo }}</h1>
+            <p class="text-[24px] text-[var(--color-ash)]">{{ detalleData.slogan }}</p>
+          </div>
+        </div>
+
+        <!-- Mosaico de especificaciones -->
+        <div class="max-w-6xl mx-auto px-6 mt-16">
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+            <div class="bg-[var(--color-carbon)] rounded-[28px] p-10 flex flex-col justify-center">
+              <h3 class="text-[40px] font-semibold tracking-tight mb-4">Diseño radical.</h3>
+              <p class="text-[17px] text-[var(--color-ash)] leading-relaxed">{{ detalleData.descripcion }}</p>
+            </div>
+            <div class="bg-[var(--color-carbon)] rounded-[28px] overflow-hidden h-[400px]">
+              <img :src="detalleData.imgSecundaria" class="w-full h-full object-cover">
+            </div>
+          </div>
+
+          <!-- Specs Grid -->
+          <div class="grid grid-cols-2 md:grid-cols-4 gap-6">
+            <div class="bg-[var(--color-carbon)] rounded-[28px] p-8 text-center" v-for="spec in detalleData.specs" :key="spec.titulo">
+              <i :class="spec.icono" class="text-3xl mb-4 text-[var(--color-porcelain)]"></i>
+              <h4 class="text-[24px] font-semibold mb-1">{{ spec.valor }}</h4>
+              <p class="text-[14px] text-[var(--color-ash)]">{{ spec.titulo }}</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </transition>
+  </div>
+
+  <script>
+    const { createApp } = Vue;
+
+// Base de datos inmersiva definitiva (Enlaces sin bloqueo y fotos de estudio limpias)
+    const baseDatosDetalles = {
+      'iphone': {
+        titulo: 'iPhone 15 Pro',
+        slogan: 'Titanio. Robusto. Ligero. Pro.',
+        // La imagen panorámica grande oficial que te gustó
+        heroImg: 'https://www.apple.com/newsroom/images/2023/09/apple-unveils-iphone-15-pro-and-iphone-15-pro-max/article/Apple-iPhone-15-Pro-lineup-hero-230912_Full-Bleed-Image.jpg.large.jpg',
+        // Imagen secundaria corregida: Oficial, horizontal y con fondo oscuro para un recorte perfecto
+        imgSecundaria: 'https://www.apple.com/v/iphone-15-pro/c/images/overview/closer-look/all_colors__eppfcocn9mky_large.jpg',
+        descripcion: 'Forjado en titanio de calidad aeroespacial. Cuenta con el chip A17 Pro, un salto gráfico sin precedentes, y un sistema de cámaras más avanzado que captura detalles increíbles en cualquier luz.',
+        specs: [
+          { icono: 'fas fa-microchip', valor: 'A17 Pro', titulo: 'Chip revolucionario' },
+          { icono: 'fas fa-camera', valor: '48MP', titulo: 'Cámara principal' },
+          { icono: 'fas fa-battery-full', valor: '29 hrs', titulo: 'Reproducción de video' },
+          { icono: 'fas fa-wifi', valor: 'Wi-Fi 6E', titulo: 'Conectividad ultrarrápida' }
+        ]
+      },
+      'mac': {
+        titulo: 'MacBook Air M3',
+        slogan: 'Ligereza que vuela.',
+        heroImg: 'https://images.unsplash.com/photo-1517336714731-489689fd1ca8?auto=format&fit=crop&q=80&w=1920',
+        imgSecundaria: 'https://soytechno.com/wp-content/uploads/2024/12/Apple-MacBook-Air-MRXN3LLA-13-M3-8C-CPU-8C-GPU-8GB-256GB-Space-Gray.jpg',
+        descripcion: 'Impulsada por el chip M3, la MacBook Air es una potencia silenciosa y ultraportátil. Su pantalla Liquid Retina brillante y hasta 18 horas de batería la hacen perfecta para trabajar en cualquier lugar.',
+        specs: [
+          { icono: 'fas fa-laptop', valor: '13.6"', titulo: 'Liquid Retina' },
+          { icono: 'fas fa-microchip', valor: 'Chip M3', titulo: 'Arquitectura 3nm' },
+          { icono: 'fas fa-weight-hanging', valor: '1.24 kg', titulo: 'Diseño ultraportátil' },
+          { icono: 'fas fa-battery-full', valor: '18 hrs', titulo: 'Autonomía' }
+        ]
+      },
+      'airpods': {
+        titulo: 'AirPods Pro 2',
+        slogan: 'Magia remasterizada.',
+        heroImg: 'https://www.rollingstone.com/wp-content/uploads/2022/09/Apple-AirPods-Pro-2nd-gen-hero-220907.jpg?w=1581&h=1054&crop=1',
+        imgSecundaria: "https://www.palabraderunner.com/wp-content/uploads/2022/09/Airpods-pro-2-generacion-4.jpg",
+        descripcion: 'Cancelación Activa de Ruido hasta dos veces más potente, Audio Espacial Personalizado y una batería de mayor duración. El chip H2 ofrece un rendimiento acústico espectacular.',
+        specs: [
+          { icono: 'fas fa-volume-mute', valor: '2x', titulo: 'Mejor cancelación' },
+          { icono: 'fas fa-headphones', valor: 'H2', titulo: 'Chip de audio' },
+          { icono: 'fas fa-battery-full', valor: '30 hrs', titulo: 'Con el estuche' },
+          { icono: 'fas fa-fingerprint', valor: 'Táctil', titulo: 'Control de volumen' }
+        ]
+      },
+      'ipad': {
+        titulo: 'iPad Pro',
+        slogan: 'Delgado. Imposible. Pro.',
+        // Panorámica intacta (no se toca)
+        heroImg: 'https://img.magnific.com/fotos-premium/tableta-aislada-fondo-blanco_1089581-31269.jpg?semt=ais_hybrid&w=740&q=80',
+        // Tarjeta: Nueva imagen estable y diferente a la panorámica
+        imgSecundaria: 'https://soytechno.com/wp-content/uploads/2024/12/Apple-iPad-Air-13-M2-Wi-Fi-Cellular-128GB-Purple-MV6U3LLA.jpg',
+        descripcion: 'El diseño más delgado creado por Apple alberga la asombrosa pantalla Ultra Retina XDR y el deslumbrante chip M4. Es una revolución de rendimiento y creatividad en tus manos.',
+        specs: [
+          { icono: 'fas fa-tablet-alt', valor: 'OLED', titulo: 'Ultra Retina XDR' },
+          { icono: 'fas fa-microchip', valor: 'Chip M4', titulo: 'Rendimiento extremo' },
+          { icono: 'fas fa-pen', valor: 'Pro', titulo: 'Soporte Apple Pencil' },
+          { icono: 'fas fa-compress-alt', valor: '5.1 mm', titulo: 'Grosor increíble' }
+        ]
+      },
+      'watch': {
+        titulo: 'Apple Watch Ultra 2',
+        slogan: 'Aventura al siguiente nivel.',
+        // Panorámica intacta (no se toca)
+        heroImg: 'https://images.unsplash.com/photo-1508685096489-7aacd43bd3b1?auto=format&fit=crop&q=80&w=1920',
+        // Tarjeta: Nueva imagen estable y diferente a la panorámica
+        imgSecundaria: 'https://images.unsplash.com/photo-1579586337278-3befd40fd17a?auto=format&fit=crop&q=80&w=800',
+        descripcion: 'Caja de titanio resistente, el GPS más preciso en un Apple Watch y hasta 72 horas de batería. Diseñado para empujar los límites de los atletas extremos y exploradores.',
+        specs: [
+          { icono: 'fas fa-sun', valor: '3000 nits', titulo: 'Pantalla ultra brillante' },
+          { icono: 'fas fa-swimmer', valor: '100m', titulo: 'Resistencia al agua' },
+          { icono: 'fas fa-satellite', valor: 'Dual', titulo: 'GPS de precisión' },
+          { icono: 'fas fa-battery-full', valor: '72 hrs', titulo: 'Modo bajo consumo' }
+        ]
+      }
+    };
+
+    createApp({
+      data() {
+        return {
+          vistaActual: 'galeria', // 'galeria' o 'detalle'
+          detalleData: null,
+          productos: [],
+          mostrarFormulario: false,
+          editandoId: null,
+          formulario: { nombre: '', categoria: '', precio: '', stock: '' }
+        }
+      },
+      methods: {
+        // Enrutador visual simple
+        abrirDetalle(categoria) {
+          const key = categoria.toLowerCase();
+          if (baseDatosDetalles[key]) {
+            this.detalleData = baseDatosDetalles[key];
+            this.vistaActual = 'detalle';
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+          }
+        },
+        abrirDetalleDesdeGaleria(prod) {
+          const nombre = prod.nombre.toLowerCase();
+          let key = 'mac'; // fallback
+          if (nombre.includes('iphone')) key = 'iphone';
+          else if (nombre.includes('airpods')) key = 'airpods';
+          else if (nombre.includes('watch')) key = 'watch';
+          else if (nombre.includes('ipad')) key = 'ipad';
+          
+          this.abrirDetalle(key);
+        },
+        obtenerImagen(nombre) {
+          const n = nombre.toLowerCase();
+          if (n.includes('iphone')) return baseDatosDetalles['iphone'].imgSecundaria;
+          if (n.includes('airpods')) return baseDatosDetalles['airpods'].imgSecundaria;
+          if (n.includes('watch')) return baseDatosDetalles['watch'].imgSecundaria;
+          if (n.includes('ipad')) return baseDatosDetalles['ipad'].imgSecundaria;
+          return baseDatosDetalles['mac'].imgSecundaria;
+        },
+        // CRUD Logic (Mantiene funcionalidad previa)
+        alertaOscura() {
+          return Swal.mixin({ background: '#1d1d1f', color: '#f5f5f7', confirmButtonColor: '#0071e3', cancelButtonColor: '#333336', customClass: { popup: 'rounded-[28px]' }});
+        },
+        async obtenerProductos() {
+          try {
+            const res = await fetch('http://localhost:3000/api/productos');
+            this.productos = await res.json();
+          } catch (error) { console.error("Error:", error); }
+        },
+        async guardarProducto() {
+          const url = this.editandoId ? `http://localhost:3000/api/productos/${this.editandoId}` : 'http://localhost:3000/api/productos';
+          const metodo = this.editandoId ? 'PUT' : 'POST';
+          try {
+            await fetch(url, { method: metodo, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(this.formulario) });
+            this.alertaOscura().fire({ title: 'Actualizado', icon: 'success', showConfirmButton: false, timer: 1500 });
+            this.cancelarEdicion();
+            this.obtenerProductos();
+          } catch (error) { this.alertaOscura().fire('Error', 'Fallo de conexión.', 'error'); }
+        },
+        editarProducto(prod) {
+          this.formulario = { ...prod };
+          this.editandoId = prod.id;
+          this.mostrarFormulario = true;
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+        },
+        async eliminarProducto(id) {
+          const conf = await this.alertaOscura().fire({ title: '¿Destruir registro?', text: "Irreversible.", icon: 'warning', showCancelButton: true, confirmButtonText: 'Eliminar', cancelButtonText: 'Cancelar' });
+          if (conf.isConfirmed) {
+            await fetch(`http://localhost:3000/api/productos/${id}`, { method: 'DELETE' });
+            this.obtenerProductos();
+          }
+        },
+        cancelarEdicion() {
+          this.formulario = { nombre: '', categoria: '', precio: '', stock: '' };
+          this.editandoId = null;
+          this.mostrarFormulario = false;
+        }
+      },
+      mounted() { this.obtenerProductos(); }
+    }).mount('#app')
+  </script>
+</body>
+</html>
