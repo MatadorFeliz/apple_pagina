@@ -11,15 +11,14 @@ app.use(cors());
 app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
 
-// --- Conexión a la Base de Datos (Aiven / Producción o Local) ---
-// Si estás en Vercel, usarás variables de entorno; si estás en local, puedes poner tus credenciales de Aiven o XAMPP
+// --- Conexión a la Base de Datos (Aiven) ---
 const db = mysql.createConnection({
-  host: process.env.DB_HOST || 'mysql-24aa1627-juanctellesr-3fe9.c.aivencloud.com',
-  user: process.env.DB_USER || 'avnadmin',
-  password: process.env.DB_PASSWORD || 'TAVNS_l4Poq5UCHBv5HyYj-kk',
-  database: process.env.DB_NAME || 'defaultdb',
-  port: process.env.DB_PORT || 20354,
-  ssl: { rejectUnauthorized: false } // Requerido por Aiven para conexiones seguras
+  host: process.env.DB_HOST,
+  user: process.env.DB_USER,
+  password: process.env.DB_PASSWORD,
+  database: process.env.DB_NAME,
+  port: process.env.DB_PORT || 3306,
+  ssl: { rejectUnauthorized: false }
 });
 
 db.connect((err) => {
@@ -31,6 +30,7 @@ db.connect((err) => {
 });
 
 // --- API: Rutas CRUD ---
+
 app.get('/api/productos', (req, res) => {
   const sql = 'SELECT * FROM productos ORDER BY id DESC';
   db.query(sql, (err, results) => {
@@ -67,16 +67,17 @@ app.delete('/api/productos/:id', (req, res) => {
   });
 });
 
-// Ruta comodín para SPA (Sirve el frontend correctamente en Vercel)
+// Ruta SPA para el frontend
 app.get('*', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
-// --- Iniciar Servidor / Exportar para Vercel ---
+// Iniciar en local si no estamos en producción
 if (process.env.NODE_ENV !== 'production') {
   app.listen(PORT, () => {
     console.log(`Servidor backend corriendo en http://localhost:${PORT}`);
   });
 }
 
+// IMPORTANTE para Vercel
 module.exports = app;
