@@ -34,7 +34,10 @@ db.connect((err) => {
 app.get('/api/productos', (req, res) => {
   const sql = 'SELECT * FROM productos ORDER BY id DESC';
   db.query(sql, (err, results) => {
-    if (err) return res.status(500).json({ error: "Fallo DB: " + err.message, stack: err.stack });
+    if (err) {
+      // Esto enviará el error exacto de MySQL o Aiven a la consola del navegador
+      return res.status(500).json({ error: "Error de Aiven: " + err.message });
+    }
     res.json(results);
   });
 });
