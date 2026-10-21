@@ -335,7 +335,7 @@
         },
         async obtenerProductos() {
           try {
-            const res = await fetch('https://apple-pagina.vercel.app/api/productos');
+            const res = await fetch('http://localhost:3000/api/productos/');
             this.productos = await res.json();
           } catch (error) { console.error("Error:", error); }
         },
