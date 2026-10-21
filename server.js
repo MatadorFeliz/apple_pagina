@@ -15,7 +15,7 @@ app.use(express.static(path.join(__dirname, 'public')));
 const db = mysql.createConnection({
   host: process.env.DB_HOST,
   user: process.env.DB_USER,
-  password: process.env.DB_PASSWORD,
+  password: process.env.DB_PASSWORD, // <-- Asegúrate de que diga esto y no tu clave real
   database: process.env.DB_NAME,
   port: process.env.DB_PORT || 3306,
   ssl: { rejectUnauthorized: false }
