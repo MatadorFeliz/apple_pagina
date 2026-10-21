@@ -340,7 +340,7 @@
           } catch (error) { console.error("Error:", error); }
         },
         async guardarProducto() {
-          const url = this.editandoId ? `/api/productos/${this.editandoId}` : '/api/productos';
+          const url = this.editandoId ? `http://localhost:3000/api/productos/${this.editandoId}` : 'http://localhost:3000/api/productos';
           const metodo = this.editandoId ? 'PUT' : 'POST';
           try {
             await fetch(url, { method: metodo, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(this.formulario) });
@@ -358,7 +358,7 @@
         async eliminarProducto(id) {
           const conf = await this.alertaOscura().fire({ title: '¿Destruir registro?', text: "Irreversible.", icon: 'warning', showCancelButton: true, confirmButtonText: 'Eliminar', cancelButtonText: 'Cancelar' });
           if (conf.isConfirmed) {
-            await fetch(`/api/productos/${id}`, { method: 'DELETE' });
+            await fetch(`http://localhost:3000/api/productos/${id}`, { method: 'DELETE' });
             this.obtenerProductos();
           }
         },
