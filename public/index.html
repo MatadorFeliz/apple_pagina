@@ -113,7 +113,7 @@
       </div>
     </nav>
 
-    <transition name="fade" mode="out-in">
+<transition name="fade" mode="out-in">
       
       <!-- VISTA 1: GALERÍA Y GESTIÓN CRUD -->
       <div v-if="vistaActual === 'galeria'" key="galeria">
@@ -172,7 +172,7 @@
             </div>
           </div>
         </main>
-      </div>
+      </div><!-- Cierre correcto del div contenedor único para el Transition -->
 
       <!-- VISTA 2: DETALLE DEL PRODUCTO -->
       <div v-if="vistaActual === 'detalle' && detalleData" key="detalle" class="bg-black pb-32">
